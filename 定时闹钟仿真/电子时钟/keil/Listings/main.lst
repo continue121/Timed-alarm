@@ -1,0 +1,295 @@
+C51 COMPILER V9.59.0.0   MAIN                                                              01/29/2023 18:13:20 PAGE 1   
+
+
+C51 COMPILER V9.59.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil 5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.
+                    -lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX51.H>
+   2          #include<stdlib.h> /*?????*/
+   3          #include<stdio.h> /*goto??????*/
+   4          #define uint unsigned int
+   5          #define uchar unsigned char
+   6          uint num,A_num,x=0;
+   7          uint h,m,s;
+   8          uint h1=0,m1=0,s1=0,sign=1; 
+   9          uchar code Zifu[]="0123456789";
+  10          sbit beep = P2^3;/*???*/
+  11          sbit LCD_EN = P3^4;/*LCD?E??*/
+  12          sbit LCD_RS = P3^5;/*LCD?RS??*/
+  13          sbit key_A = P3^6;
+  14          sbit key_B = P3^7;
+  15          /*??????
+  16          */
+  17          void delay(uint i)
+  18          {
+  19   1        uchar j;
+  20   1        while(i--)
+  21   1        for(j=0;j<125;j++);
+  22   1      }
+  23          /*?????????????RW=0,???RW??*/
+  24          /*????
+  25          */
+  26          void write_command(uchar command)
+  27            {
+  28   1        LCD_RS = 0;
+  29   1        LCD_EN = 0;/*???RS?EN???0????????*/
+  30   1        P0 = command;/*???command??P0?*/
+  31   1          LCD_EN = 1; /*???????,E?????,????,??????E=0*/     
+  32   1        delay(2);/*??,??????*/
+  33   1        LCD_EN = 0; /*E?????????,LCD??????*/
+  34   1          /*???*????*/
+  35   1      }
+  36          /*???
+  37          */
+  38          void write_data(uchar shuju)
+  39            {
+  40   1        LCD_RS = 1;/*???RS=1?RW=0???????*/
+  41   1        LCD_EN = 0;/*??????,E?????,????E=0*/
+  42   1        P0 = shuju;/*????P0???,???LCD*/
+  43   1        LCD_EN = 1; /*E?????*/
+  44   1        delay(2);/*???????*/
+  45   1        LCD_EN = 0; /*E?????????,???????*/
+  46   1      } 
+  47          void lcd_post(int X,int Y)
+  48          {   
+  49   1        write_command(0x80+X*(0x40)+Y);
+  50   1      }
+  51           /*??????????,??????:???“??????”;???“alarm clock”
+  52            ?????
+  53            ???11.0592M,???????12/11.0592*250,?????3686,???1?;?????12M,??????4000
+  54          */
+C51 COMPILER V9.59.0.0   MAIN                                                              01/29/2023 18:13:20 PAGE 2   
+
+  55          void init() 
+  56            {
+  57   1        h=m=s=0;
+  58   1        num=A_num=0;
+  59   1        LCD_EN=0;
+  60   1        write_command(0x38); /*??????(16*2??,5*7??,)*/
+  61   1          write_command(0x0c); /*????0x0c:?????,???,???*/ 
+  62   1          write_command(0x06); /*????0x06:????*/  
+  63   1          write_command(0x01); /*????0x01:??*/      
+  64   1        TMOD = 0x02;/*???T0????2,????256??,??????*/
+  65   1        TH0 = 6;
+  66   1        TL0 = 6;
+  67   1        EA = 1;
+  68   1        ET0 = 1;
+  69   1        TR0 = 1;
+  70   1        /*???*/
+  71   1          /*?*/
+  72   1        lcd_post(0,0); write_data(Zifu[h/10]);
+  73   1        lcd_post(0,1); write_data(Zifu[h%10]);
+  74   1        lcd_post(0,2); write_data(':');
+  75   1          /*?*/
+  76   1        lcd_post(0,3); write_data(Zifu[m/10]);
+  77   1        lcd_post(0,4); write_data(Zifu[m%10]);
+  78   1        lcd_post(0,5); write_data(':');
+  79   1        /*?*/
+  80   1        lcd_post(0,6); write_data(Zifu[s/10]);
+  81   1        lcd_post(0,7); write_data(Zifu[s%10]);
+  82   1        /*???*/
+  83   1        lcd_post(1,5); write_data('a');
+  84   1        lcd_post(1,6); write_data('l');
+  85   1        lcd_post(1,7); write_data('a');
+  86   1        lcd_post(1,8); write_data('r');
+  87   1        lcd_post(1,9); write_data('m');
+  88   1        lcd_post(1,10); write_data(' ');
+  89   1        lcd_post(1,11); write_data('c'); 
+  90   1        lcd_post(1,12); write_data('l');
+  91   1        lcd_post(1,13); write_data('o');
+  92   1        lcd_post(1,14); write_data('c');
+  93   1        lcd_post(1,15); write_data('k');
+  94   1      }
+  95          /*???
+  96          */
+  97          void ling()
+  98          {
+  99   1        unsigned char a;
+ 100   1      
+ 101   1        for(a=0;a<60;a++) /*???????(?????60?)*/
+ 102   1        {   
+ 103   2        if((P1&0x80)==0)/*????????,????*/
+ 104   2         break;
+ 105   2        /*“ling ling”??,??????
+ 106   2        */
+ 107   2        lcd_post(1,5); write_data('l');
+ 108   2        lcd_post(1,6); write_data('i');
+ 109   2        lcd_post(1,7); write_data('n');
+ 110   2        lcd_post(1,8); write_data('g');
+ 111   2        lcd_post(1,9); write_data('!');
+ 112   2        lcd_post(1,10); write_data(' ');
+ 113   2        lcd_post(1,11); write_data('l');
+ 114   2        lcd_post(1,12); write_data('i');
+ 115   2        lcd_post(1,13); write_data('n');
+ 116   2        lcd_post(1,14); write_data('g');
+C51 COMPILER V9.59.0.0   MAIN                                                              01/29/2023 18:13:20 PAGE 3   
+
+ 117   2        lcd_post(1,15); write_data('!');
+ 118   2        beep=0;
+ 119   2        delay(500);
+ 120   2        lcd_post(1,5); write_data(' ');
+ 121   2        lcd_post(1,6); write_data(' ');
+ 122   2        lcd_post(1,7); write_data(' ');
+ 123   2        lcd_post(1,8); write_data(' ');
+ 124   2        lcd_post(1,9); write_data(' ');
+ 125   2        lcd_post(1,10); write_data(' ');
+ 126   2        lcd_post(1,11); write_data(' ');
+ 127   2        lcd_post(1,12); write_data(' ');
+ 128   2        lcd_post(1,13); write_data(' ');
+ 129   2        lcd_post(1,14); write_data(' ');
+ 130   2        lcd_post(1,15); write_data(' ');
+ 131   2        beep=1; 
+ 132   2        delay(500);
+ 133   2        } 
+ 134   1        /*????,???????“alarm clock”
+ 135   1        */
+ 136   1        lcd_post(1,5); write_data('a');
+ 137   1        lcd_post(1,6); write_data('l');
+ 138   1        lcd_post(1,7); write_data('a');
+ 139   1        lcd_post(1,8); write_data('r');
+ 140   1        lcd_post(1,9); write_data('m');
+ 141   1        lcd_post(1,10); write_data(' ');
+ 142   1        lcd_post(1,11); write_data('c');
+ 143   1        lcd_post(1,12); write_data('l');
+ 144   1        lcd_post(1,13); write_data('o');
+ 145   1        lcd_post(1,14); write_data('c');
+ 146   1        lcd_post(1,15); write_data('k');
+ 147   1      }
+ 148           /*???????????
+ 149          */
+ 150          void keyscan()    
+ 151            {
+ 152   1        if(key_A==0)
+ 153   1          {
+ 154   2          delay(3);
+ 155   2          if(key_A==0)
+ 156   2            {
+ 157   3            A_num++;  
+ 158   3            switch(A_num)
+ 159   3              {
+ 160   4                case 1:               
+ 161   4                TR0=0;              
+ 162   4                lcd_post(0,1);
+ 163   4                write_command(0x0f);/*????*/
+ 164   4                break;
+ 165   4              case 2:lcd_post(0,4);break;    
+ 166   4              case 3:lcd_post(0,7);break;           
+ 167   4              case 4:
+ 168   4                A_num=0;
+ 169   4                write_command(0x0c);/*?????,?????*/
+ 170   4                TR0=1;
+ 171   4                sign = 0;
+ 172   4                break;
+ 173   4            }   
+ 174   3          }
+ 175   2          while(!key_A);
+ 176   2        }
+ 177   1        if(A_num!=0)
+ 178   1          {
+C51 COMPILER V9.59.0.0   MAIN                                                              01/29/2023 18:13:20 PAGE 4   
+
+ 179   2          if(key_B==0)
+ 180   2            {
+ 181   3            delay(3);
+ 182   3            if(key_B==0)
+ 183   3              {         
+ 184   4              switch(A_num)
+ 185   4                {
+ 186   5              case 1:
+ 187   5                h1=(++h1)%24;
+ 188   5                lcd_post(0,0); write_data(Zifu[h1/10]);
+ 189   5                lcd_post(0,1); write_data(Zifu[h1%10]);
+ 190   5                break;      
+ 191   5              case 2:
+ 192   5                m1=(++m1)%60;
+ 193   5                lcd_post(0,3); write_data(Zifu[m1/10]);
+ 194   5                lcd_post(0,4); write_data(Zifu[m1%10]);
+ 195   5                break;    
+ 196   5              case 3:
+ 197   5                s1=(++s1)%60;
+ 198   5                lcd_post(0,6); write_data(Zifu[s1/10]);
+ 199   5                lcd_post(0,7); write_data(Zifu[s1%10]);
+ 200   5                break;      
+ 201   5              case 4:sign = 0;break;
+ 202   5              }write_command(0x10);   
+ 203   4            }
+ 204   3            while(!key_B);
+ 205   3          }
+ 206   2        } 
+ 207   1      } 
+ 208          /*???
+ 209          */
+ 210          void main()
+ 211          {   
+ 212   1        int clk1 =0;
+ 213   1        int clk2 =0;
+ 214   1        there:
+ 215   1        beep=0;
+ 216   1        init(); 
+ 217   1         h1=m1=s1=0;
+ 218   1        while(sign)
+ 219   1        {
+ 220   2          keyscan();
+ 221   2        }
+ 222   1        clk1 = 0;
+ 223   1        clk2 = h1*3600+m1*60+s1;
+ 224   1        init();
+ 225   1        while(1)
+ 226   1          {     
+ 227   2          if(num==3686)/*1?*/
+ 228   2            {
+ 229   3            num=0;
+ 230   3              s++;
+ 231   3              clk1++;
+ 232   3              if(clk1 == clk2) 
+ 233   3              {
+ 234   4                ling();
+ 235   4                sign = 1;
+ 236   4                goto there; /*if?????,????,??there????*/        
+ 237   4              }
+ 238   3            if(s==60)
+ 239   3              {
+ 240   4              s=0;
+C51 COMPILER V9.59.0.0   MAIN                                                              01/29/2023 18:13:20 PAGE 5   
+
+ 241   4              m++;        
+ 242   4              if(m==60)
+ 243   4                {
+ 244   5                m=0;
+ 245   5                h++;
+ 246   5                if(h==24)h=0;
+ 247   5                lcd_post(0,0); write_data(Zifu[h/10]);
+ 248   5                lcd_post(0,1); write_data(Zifu[h%10]);
+ 249   5              }
+ 250   4                lcd_post(0,3); write_data(Zifu[m/10]);
+ 251   4                lcd_post(0,4); write_data(Zifu[m%10]);
+ 252   4              }
+ 253   3                lcd_post(0,6); write_data(Zifu[s/10]);
+ 254   3                lcd_post(0,7); write_data(Zifu[s%10]);
+ 255   3              }
+ 256   2          
+ 257   2              }
+ 258   1      }
+ 259          /*????
+ 260          */
+ 261          void T0_time() interrupt 1
+ 262          {
+ 263   1        num++;}
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1406    ----
+   CONSTANT SIZE    =     11    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     20       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
